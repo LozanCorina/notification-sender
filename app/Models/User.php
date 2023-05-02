@@ -22,4 +22,14 @@ class User extends Authenticatable
         'phone_unreachable',
         'push_notifications_token',
     ];
+
+    /**
+     * Specifies the user's FCM token
+     *
+     * @return string|array
+     */
+    public function routeNotificationForFcm()
+    {
+        return $this->push_notifications_token;
+    }
 }
