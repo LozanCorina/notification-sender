@@ -8,10 +8,9 @@ use Vonage\SMS\Message\SMS;
 
 class VonageApi
 {
-    private $appID;
+    private $api_key;
     private $secret;
     private $from;
-    private $api_key;
     private $client;
 
     public function __construct()
