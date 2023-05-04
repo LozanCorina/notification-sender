@@ -12,23 +12,21 @@ class SMSNotificationService implements NotificationSenderInterface
      * @var string
      */
     public $clientApi;
-    public $phone;
-    public $body;
 
     public function __construct()
     {
         $this->clientApi = new VonageApi();
     }
 
-    public function send($notification, $exceptionCallback = null)
+    public function send($notification, $exceptionCallback = null): bool
     {
         try {
 
-            $status = $this->clientApi->send($notification->phone, $notification->body);
+            $status = $this->clientApi->send($notification['phone'], $notification['body']);
 
             if ($this->isFailedPhoneStatus($status)) {
 
-                $this->updateUserStatusPhone($notification->phone);
+                $this->updateUserStatusPhone($notification['phone']);
 
                 return false;
             }
@@ -37,7 +35,7 @@ class SMSNotificationService implements NotificationSenderInterface
 
         } catch (\Exception $exception) {
 
-            Log::error('send-sms', "The message failed:" . $exception . "\n");
+            Log::error("The message failed: " . $exception . "\n");
 
             return false;
         }
