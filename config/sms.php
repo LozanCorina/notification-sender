@@ -1,6 +1,6 @@
 <?php
 return [
-    'from' => env('VONAGE_APP_NAME'),
+    'from' => env('APP_SENDER'),
 
     'vonage' => [
         'api_key' => env('VONAGE_KEY'),
