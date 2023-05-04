@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Route;
 */
 Route::group(['middleware' => 'api.auth'], function () {
     Route::post('/user', [UserController::class, 'store']);
-    Route::get('/push-notification/{user}', [UserController::class, 'push'] );
-    Route::get('/sms-notification/{user}', [UserController::class, 'sms'] );
+    Route::post('/push-notification/{user}', [UserController::class, 'push'] );
+    Route::post('/sms-notification/{user}', [UserController::class, 'sms'] );
 });
 
 
