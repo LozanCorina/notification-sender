@@ -38,7 +38,12 @@ class UserController extends Controller
 
     public function sms(User $user, PushNotificationRequest $request, SMSNotificationService $notificationService)
     {
-        (new UserService($user, $notificationService))->notifySMS($request->validated());
+        if (!(new UserService($user, $notificationService))->notifySMS($request->validated())) {
+
+            return response()->json([
+                'status' => 'Failed to send SMS',
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
         return response()->json([
             'status' => 'success',
