@@ -7,9 +7,13 @@ use App\Http\Requests\Api\PushNotificationRequest;
 use App\Http\Requests\Api\SMSNotificationRequest;
 use App\Http\Requests\Api\StoreUserRequest;
 use App\Models\User;
+use App\Notifications\SendPushNotification;
+use App\Services\Notifications\PushNotificationService;
 use App\Services\Notifications\SMSNotificationService;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
+use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
@@ -38,17 +42,25 @@ class UserController extends Controller
 
         }
 
-        if (!(new UserService($user))->notifyPush($request->validated())) {
+        try {
+
+            $user->notify(new SendPushNotification($request->validated()));
 
             return response()->json([
-                'status' => 'Failed to send push.',
+                'status' => 'success',
+            ], Response::HTTP_OK);
+
+        } catch (CouldNotSendNotification $exception) {
+
+            $user->push_notifications_token = null;
+            $user->save();
+
+            Log::error('Failed to send push notification: ' . $exception->getMessage());
+
+            return response()->json([
+                'status' => 'Failed to send push notification',
             ], Response::HTTP_BAD_REQUEST);
-
         }
-
-        return response()->json([
-            'status' => 'success',
-        ], Response::HTTP_OK);
     }
 
     public function sms(User $user, SMSNotificationRequest $request, SMSNotificationService $notificationService)
