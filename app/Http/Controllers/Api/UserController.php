@@ -8,13 +8,14 @@ use App\Http\Requests\Api\SMSNotificationRequest;
 use App\Http\Requests\Api\StoreUserRequest;
 use App\Models\User;
 use App\Notifications\SendPushNotification;
+use App\Notifications\SendSMSNotification;
 use App\Services\Notifications\PushNotificationService;
-use App\Services\Notifications\SMSNotificationService;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
 use Symfony\Component\HttpFoundation\Response;
+use Vonage\Client\Exception\Exception;
 
 class UserController extends Controller
 {
@@ -63,17 +64,41 @@ class UserController extends Controller
         }
     }
 
-    public function sms(User $user, SMSNotificationRequest $request, SMSNotificationService $notificationService)
+    public function sms(User $user, SMSNotificationRequest $request)
     {
-        if (!(new UserService($user, $notificationService))->notifySMS($request->validated())) {
+        if ($user->phone_unreachable) {
 
+            return response()->json([
+                'status' => 'Failed to send SMS. Unreachable phone number',
+            ], Response::HTTP_NO_CONTENT);
+
+        }
+
+        try {
+            $user->notify(new SendSMSNotification($request->get('message')));
+
+            return response()->json([
+                'status' => 'success',
+            ], Response::HTTP_OK);
+        } catch (Exception $exception) {
+
+            if ($this->isFailedPhoneStatus($exception->getCode())) {
+                $user->invalidatePhoneNumber();
+            }
             return response()->json([
                 'status' => 'Failed to send SMS',
             ], Response::HTTP_BAD_REQUEST);
         }
+    }
 
-        return response()->json([
-            'status' => 'success',
-        ], Response::HTTP_OK);
+    /**
+     * @param int $status
+     * @return bool
+     */
+    public function isFailedPhoneStatus(int $status): bool
+    {
+        return in_array($status, [
+            6, 7, 22
+        ]);
     }
 }
