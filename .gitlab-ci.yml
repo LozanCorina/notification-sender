@@ -1,0 +1,26 @@
+stages:
+  - merge
+
+check_merge_approve:
+  image: docker:20
+  stage: merge
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+  tags:
+    - ebs
+  before_script:
+    - echo $CI_MERGE_REQUEST_IID
+    - apk add curl jq
+  script:
+    - |
+      MERGE_REQUEST_AUTHOR=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.devebs.net/api/v4/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID | jq ".author.username")
+      APPROVERS=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" https://gitlab.devebs.net/api/v4/projects/$CI_PROJECT_ID/merge_requests/$CI_MERGE_REQUEST_IID/approvals | jq ".approved_by[].user.username" | jq "del(. | select(. == $MERGE_REQUEST_AUTHOR))" | jq '. | select(. != null )')
+      echo "Author $MERGE_REQUEST_AUTHOR"
+      if [[ "$APPROVERS" ]]; then
+        echo 'Approved'
+        echo -e "Approvers:\n$APPROVERS"
+      else
+        echo 'Merge should be approved'
+        exit 1
+      fi
