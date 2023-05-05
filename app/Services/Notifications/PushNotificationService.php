@@ -2,6 +2,7 @@
 
 namespace App\Services\Notifications;
 
+use App\Models\User;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Fcm\FcmChannel;
@@ -10,10 +11,12 @@ use NotificationChannels\Fcm\FcmMessage;
 class PushNotificationService extends Notification
 {
     private $notification;
+    private $token;
 
-    public function __construct($notification)
+    public function __construct($notification, $token)
     {
         $this->notification = $notification;
+        $this->token = $token;
     }
 
     public function via($notifiable)
@@ -34,6 +37,8 @@ class PushNotificationService extends Notification
     {
         Log::error('Failed to send push notification: ' . $exception->getMessage());
 
-        return false;
+        User::query()->where('push_notifications_token', $this->token)->update([
+            'push_notifications_token' => null
+        ]);
     }
 }
