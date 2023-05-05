@@ -3,11 +3,8 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Services\Firebase\FirebaseApi;
 use App\Services\Notifications\NotificationSenderInterface;
 use App\Services\Notifications\PushNotificationService;
-use App\Services\Notifications\SMSNotificationService;
-use NotificationChannels\Fcm\Resources\Notification;
 
 class UserService
 {
@@ -30,18 +27,12 @@ class UserService
      */
     public function notifyPush(array $data)
     {
-        $notification = new FirebaseApi();
+        $notification = [
+            'title' => $data['title'],
+            'body' => $data['body']
+        ];
 
-        $notification->title = $data['title'];
-        $notification->body = $data['body'];
-
-        if (!$this->user->notify($notification)) {
-            $this->user->push_notifications_token = null;
-            $this->user->save();
-            return false;
-        }
-
-        return true;
+        $this->user->notify(new PushNotificationService($notification, $this->user->push_notifications_token));
     }
 
     /**
@@ -55,7 +46,7 @@ class UserService
             'body' => $data['body']
         ];
 
-        return $this->sender->send($notification, true);
+        return $this->sender->send($notification);
     }
 
 }

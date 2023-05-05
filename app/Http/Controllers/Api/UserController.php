@@ -36,11 +36,7 @@ class UserController extends Controller
             ], Response::HTTP_NO_CONTENT);
         }
 
-        if (!(new UserService($user))->notifyPush($request->validated())) {
-            return response()->json([
-                'status' => 'Failed to send push.',
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        (new UserService($user))->notifyPush($request->validated());
 
         return response()->json([
             'status' => 'success',
