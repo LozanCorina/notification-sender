@@ -18,7 +18,7 @@ class SMSNotificationService implements NotificationSenderInterface
         $this->clientApi = new VonageApi();
     }
 
-    public function send($notification, $exceptionCallback = null): bool
+    public function send($notification): bool
     {
         try {
 
