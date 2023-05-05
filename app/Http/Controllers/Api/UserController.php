@@ -31,12 +31,20 @@ class UserController extends Controller
     public function push(User $user, PushNotificationRequest $request)
     {
         if (!$user->push_notifications_token) {
+
             return response()->json([
                 'status' => 'Failed to send push. Invalid firebase token',
             ], Response::HTTP_NO_CONTENT);
+
         }
 
-        (new UserService($user))->notifyPush($request->validated());
+        if (!(new UserService($user))->notifyPush($request->validated())) {
+
+            return response()->json([
+                'status' => 'Failed to send push.',
+            ], Response::HTTP_BAD_REQUEST);
+
+        }
 
         return response()->json([
             'status' => 'success',

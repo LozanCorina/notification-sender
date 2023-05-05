@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\User;
 use App\Services\Notifications\NotificationSenderInterface;
 use App\Services\Notifications\PushNotificationService;
+use Illuminate\Support\Facades\Log;
+use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
 
 class UserService
 {
@@ -25,14 +27,26 @@ class UserService
      * @param array $data
      * @return mixed
      */
-    public function notifyPush(array $data)
+    public function notifyPush(array $data): bool
     {
         $notification = [
             'title' => $data['title'],
             'body' => $data['body']
         ];
 
-        $this->user->notify(new PushNotificationService($notification, $this->user->push_notifications_token));
+        try {
+            $this->user->notify(new PushNotificationService($notification));
+             return true;
+        } catch (CouldNotSendNotification $exception) {
+
+            $this->user->push_notifications_token = null;
+            $this->user->save();
+
+            Log::error('Failed to send push notification: ' . $exception->getMessage());
+
+            return false;
+        }
+
     }
 
     /**
