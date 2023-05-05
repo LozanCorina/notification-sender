@@ -32,4 +32,10 @@ class User extends Authenticatable
     {
         return $this->push_notifications_token;
     }
+
+    public function invalidatePhoneNumber()
+    {
+        $this->phone_unreachable = true;
+        $this->save();
+    }
 }

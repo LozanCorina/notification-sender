@@ -60,7 +60,18 @@ class UserService
             'body' => $data['body']
         ];
 
-        return $this->sender->send($notification);
+        return $this->sender->send($notification,  function (\Exception $exception) {
+            if ($this->isFailedPhoneStatus($exception->getCode())) {
+                $this->user->invalidatePhoneNumber();
+            }
+        });
+    }
+
+    public function isFailedPhoneStatus(int $status): bool
+    {
+        return in_array($status, [
+            6, 7, 22
+        ]);
     }
 
 }
