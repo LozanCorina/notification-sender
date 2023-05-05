@@ -5,5 +5,5 @@ namespace App\Services\Notifications;
 interface NotificationSenderInterface
 {
 
-    public function send($notification);
+    public function send($notification, $exceptionCallback = null);
 }
