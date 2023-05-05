@@ -32,13 +32,7 @@ class UserService
             'body' => $data['body']
         ];
 
-        if ($this->user->notify(new PushNotificationService($notification))) {
-            $this->user->push_notifications_token = null;
-            $this->user->save();
-            return false;
-        }
-
-        return true;
+        $this->user->notify(new PushNotificationService($notification, $this->user->push_notifications_token));
     }
 
     /**
