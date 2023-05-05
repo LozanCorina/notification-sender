@@ -15,7 +15,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
 use Symfony\Component\HttpFoundation\Response;
-use Vonage\Client\Exception\Exception;
 
 class UserController extends Controller
 {
@@ -80,11 +79,12 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'success',
             ], Response::HTTP_OK);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
 
             if ($this->isFailedPhoneStatus($exception->getCode())) {
                 $user->invalidatePhoneNumber();
             }
+
             return response()->json([
                 'status' => 'Failed to send SMS',
             ], Response::HTTP_BAD_REQUEST);
