@@ -39,4 +39,15 @@ class SendSMSNotification extends Notification
         return (new VonageMessage)
             ->content($this->message);
     }
+
+    /**
+     * @param int $status
+     * @return bool
+     */
+    public static function isFailedPhoneStatus(int $status): bool
+    {
+        return in_array($status, [
+            6, 7, 22
+        ]);
+    }
 }
