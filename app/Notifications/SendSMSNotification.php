@@ -12,6 +12,7 @@ class SendSMSNotification extends Notification
     use Queueable;
 
     private $message;
+    protected $callback = 'https://webhook.site/#!/2ebaa40e-df83-4ed4-a7a9-ce7baeecab18';
 
     /**
      * Create a new notification instance.
@@ -38,7 +39,7 @@ class SendSMSNotification extends Notification
     {
         return (new VonageMessage)
             ->content($this->message)
-            ->statusCallback('https://webhook.site/2ebaa40e-df83-4ed4-a7a9-ce7baeecab18');
+            ->statusCallback($this->callback);
     }
 
     /**
