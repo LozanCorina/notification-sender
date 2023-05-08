@@ -64,7 +64,7 @@ class UserController extends Controller
 
     public function sms(User $user, SMSNotificationRequest $request)
     {
-        if (!$user->isPhoneUnreachable()) {
+        if ($user->isPhoneUnreachable()) {
 
             return response()->json([
                 'status' => 'Failed to send SMS. Unreachable phone number',
