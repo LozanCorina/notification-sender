@@ -85,6 +85,8 @@ class UserController extends Controller
                 $user->invalidatePhoneNumber();
             }
 
+            Log::error('Failed to send sms notification: ' . $exception->getMessage());
+
             return response()->json([
                 'status' => 'Failed to send SMS',
             ], Response::HTTP_BAD_REQUEST);
