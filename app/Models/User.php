@@ -42,12 +42,37 @@ class User extends Authenticatable
         return $this->phone_number;
     }
 
+
+    /**
+     * @return bool
+     */
+    public function isPhoneUnreachable(): bool
+    {
+        return $this->phone_unreachable;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasPushNotificationToken(): bool
+    {
+        return $this->push_notifications_token;
+    }
+
+    /**
+     * @return bool
+     */
+    public function setUnreachablePhoneNumber(): bool
+    {
+        return $this->phone_unreachable;
+    }
+
     /**
      * @return void
      */
-    public function invalidatePhoneNumber()
+    public function setPushNotificationTokenNull()
     {
-        $this->phone_unreachable = true;
+        $this->push_notifications_token = null;
         $this->save();
     }
 }

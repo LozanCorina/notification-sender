@@ -34,7 +34,7 @@ class UserController extends Controller
 
     public function push(User $user, PushNotificationRequest $request)
     {
-        if (!$user->push_notifications_token) {
+        if (!$user->hasPushNotificationToken()) {
 
             return response()->json([
                 'status' => 'Failed to send push. Invalid firebase token',
@@ -52,8 +52,7 @@ class UserController extends Controller
 
         } catch (CouldNotSendNotification $exception) {
 
-            $user->push_notifications_token = null;
-            $user->save();
+            $user->setPushNotificationTokenNull();
 
             Log::error('Failed to send push notification: ' . $exception->getMessage());
 
@@ -65,7 +64,7 @@ class UserController extends Controller
 
     public function sms(User $user, SMSNotificationRequest $request)
     {
-        if ($user->phone_unreachable) {
+        if (!$user->isPhoneUnreachable()) {
 
             return response()->json([
                 'status' => 'Failed to send SMS. Unreachable phone number',
@@ -81,8 +80,8 @@ class UserController extends Controller
             ], Response::HTTP_OK);
         } catch (\Exception $exception) {
 
-            if ($this->isFailedPhoneStatus($exception->getCode())) {
-                $user->invalidatePhoneNumber();
+            if (SendSMSNotification::isFailedPhoneStatus($exception->getCode())) {
+                $user->setUnreachablePhoneNumber();
             }
 
             Log::error('Failed to send sms notification: ' . $exception->getMessage());
@@ -91,16 +90,5 @@ class UserController extends Controller
                 'status' => 'Failed to send SMS',
             ], Response::HTTP_BAD_REQUEST);
         }
-    }
-
-    /**
-     * @param int $status
-     * @return bool
-     */
-    public function isFailedPhoneStatus(int $status): bool
-    {
-        return in_array($status, [
-            6, 7, 22
-        ]);
     }
 }
