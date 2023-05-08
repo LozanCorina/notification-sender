@@ -39,7 +39,7 @@ class User extends Authenticatable
      */
     public function routeNotificationForVonage(Notification $notification): string
     {
-        return $this->phone_number;
+        return $this->phone;
     }
 
 

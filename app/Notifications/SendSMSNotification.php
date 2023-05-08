@@ -37,7 +37,8 @@ class SendSMSNotification extends Notification
     public function toVonage(object $notifiable): VonageMessage
     {
         return (new VonageMessage)
-            ->content($this->message);
+            ->content($this->message)
+            ->statusCallback('https://webhook.site/2ebaa40e-df83-4ed4-a7a9-ce7baeecab18');
     }
 
     /**
