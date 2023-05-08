@@ -22,7 +22,7 @@ class SMSNotificationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'body' => 'required|max:160'
+            'message' => 'required|max:160'
         ];
     }
 }
