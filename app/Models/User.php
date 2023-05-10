@@ -56,15 +56,16 @@ class User extends Authenticatable
      */
     public function hasPushNotificationToken(): bool
     {
-        return $this->push_notifications_token;
+        return (bool) $this->push_notifications_token;
     }
 
     /**
-     * @return bool
+     * @return void
      */
-    public function setUnreachablePhoneNumber(): bool
+    public function setUnreachablePhoneNumber(): void
     {
-        return $this->phone_unreachable;
+        $this->phone_unreachable = true;
+        $this->save();
     }
 
     /**
@@ -74,5 +75,23 @@ class User extends Authenticatable
     {
         $this->push_notifications_token = null;
         $this->save();
+    }
+
+    /**
+     * @param $q
+     * @return mixed
+     */
+    public function scopeHasPushNotificationToken($q)
+    {
+        return $q->whereNotNull('push_notifications_token');
+    }
+
+    /**
+     * @param $q
+     * @return mixed
+     */
+    public function scopeHasValidPhone($q)
+    {
+        return $q->where('phone_unreachable', false);
     }
 }
