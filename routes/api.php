@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,8 @@ Route::group(['middleware' => 'api.auth'], function () {
     Route::post('/sms-notification/{user}', [UserController::class, 'sms'] );
     Route::post('/sms-notifications', [UserController::class, 'smsMulticast'] );
 });
+
+Route::get('/order/{order}', [OrderController::class, 'calculate'] );
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
