@@ -8,12 +8,12 @@ use App\Http\Requests\Api\SMSNotificationRequest;
 use App\Http\Requests\Api\StoreUserRequest;
 use App\Models\User;
 use App\Notifications\SendPushNotification;
-use App\Notifications\SendSMSNotification;
 use App\Services\Notifications\PushNotificationService;
+use App\Services\SendSMSNotificationService;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use NotificationChannels\Fcm\Exceptions\CouldNotSendNotification;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
@@ -42,53 +42,59 @@ class UserController extends Controller
 
         }
 
-        try {
+        $user->notify(new SendPushNotification($request->validated()));
 
-            $user->notify(new SendPushNotification($request->validated()));
-
-            return response()->json([
-                'status' => 'success',
-            ], Response::HTTP_OK);
-
-        } catch (CouldNotSendNotification $exception) {
-
-            $user->setPushNotificationTokenNull();
-
-            Log::error('Failed to send push notification: ' . $exception->getMessage());
-
-            return response()->json([
-                'status' => 'Failed to send push notification',
-            ], Response::HTTP_BAD_REQUEST);
-        }
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_OK);
     }
 
-    public function sms(User $user, SMSNotificationRequest $request)
+    public function pushMulticast(PushNotificationRequest $request)
+    {
+        User::query()->hasPushNotificationToken()
+            ->chunkById(10000, function (Collection $users) use ($request) {
+                Notification::send($users, new SendPushNotification($request->validated()));
+            });
+
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_OK);
+    }
+
+    public function sms(User $user, SMSNotificationRequest $request, SendSMSNotificationService $service)
     {
         if ($user->isPhoneUnreachable()) {
-
             return response()->json([
                 'status' => 'Failed to send SMS. Unreachable phone number',
             ], Response::HTTP_NO_CONTENT);
-
         }
 
-        try {
-            $user->notify(new SendSMSNotification($request->get('message')));
+        $response = $service->send($user, $request->message);
 
-            return response()->json([
-                'status' => 'success',
-            ], Response::HTTP_OK);
-        } catch (\Exception $exception) {
-
-            if (SendSMSNotification::isFailedPhoneStatus($exception->getCode())) {
-                $user->setUnreachablePhoneNumber();
-            }
-
-            Log::error('Failed to send sms notification: ' . $exception->getMessage());
-
+        if (!$response) {
             return response()->json([
                 'status' => 'Failed to send SMS',
             ], Response::HTTP_BAD_REQUEST);
         }
+
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_OK);
+    }
+
+    public function smsMulticast(SMSNotificationRequest $request, SendSMSNotificationService $service)
+    {
+        $message = $request->message;
+
+        User::query()->hasValidPhone()
+            ->chunkById(10000, function (Collection $users) use ($message, $service) {
+                foreach ($users as $user) {
+                    $service->send($user, $message);;
+                }
+            });
+
+        return response()->json([
+            'status' => 'success',
+        ], Response::HTTP_OK);
     }
 }
