@@ -7,7 +7,7 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## About Project
 
 We should notify user via FCM and Vonage and disable future notifications via specific channel if it was failed
 
